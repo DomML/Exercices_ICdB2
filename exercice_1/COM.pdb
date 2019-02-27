@@ -1,0 +1,5 @@
+HEADER    
+TITLE     MDANALYSIS FRAME 0: Created by PDBWriter
+CRYST1    0.000    0.000    0.000   0.00   0.00   0.00 P 1           1
+ATOM      1  DUM LEU A  67      31.014   1.081   5.221  1.00  0.00      AP1  D
+END
