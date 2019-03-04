@@ -33,21 +33,54 @@ DG.number_of_nodes(), DG.number_of_edges()
 
 # In[7]:
 unique_input_id = np.unique(interactions[0][:,0])
-unique_output_id = np.unique(interactions[3][:,1])
-
 unique_input_node = [i for i in DG.nodes() if "_0" in i]
-unique_output_node = [i for i in DG.nodes() if "_4" in i]
 
+
+def initCount(DG):
+    for node in DG.nodes:
+        DG.nodes[node]['count_path_value'] = -1
 
 def countPath(node, DG):
-    if len(list(DG.successors(node))) == 0:
-        return 1
-    else:
-        return sum([countPath(p_node, DG) for p_node in DG.successors(node)])
+    if DG.nodes[node]['count_path_value'] == -1:
+        if len(list(DG.successors(node))) == 0:
+            DG.nodes[node]['count_path_value']  = 1
+        else:
+            DG.nodes[node]['count_path_value']  = sum([countPath(p_node, DG) for p_node in DG.successors(node)])
+    return DG.nodes[node]['count_path_value']
 
-
+initCount(DG)
 print("Nombre de chemins possibles : ")
 print(sum([countPath(start_node, DG) for start_node in unique_input_node]))
 
 
 # ### C'est rassurant, les méthodes brutes (voir notebook) et dynamiques donnent les mêmes résultats !
+
+def initPath(DG):
+    for node in DG.nodes:
+        DG.nodes[node]['bestSuccessor'] = None
+        DG.nodes[node]['bestPath'] = []
+        DG.nodes[node]['bestPath_value'] = 0
+        DG.nodes[node]['node_value'] = int(node.split("_")[0])
+        
+def bestPath(node, DG):
+    if DG.nodes[node]['bestSuccessor'] == None:
+        if len(list(DG.successors(node))) == 0:
+            DG.nodes[node]['bestSuccessor'] = (DG.nodes[node]['node_value'], node)
+            DG.nodes[node]['bestPath_value'] = DG.nodes[node]['node_value']
+        else:
+            unsorted_successors = [[bestPath(p_node, DG)[0] + DG.nodes[node]['node_value'], p_node]
+                                   for p_node in DG.successors(node)]
+            sorted_successors = sorted(unsorted_successors, key=lambda tup: tup[0])
+            DG.nodes[node]['bestSuccessor'] = sorted_successors[0]
+            DG.nodes[node]['bestPath'] = [sorted_successors[0][1]] + DG.nodes[sorted_successors[0][1]]['bestPath']
+            DG.nodes[node]['bestPath_value'] = DG.nodes[node]['node_value'] + DG.nodes[sorted_successors[0][1]]['bestPath_value']
+    return DG.nodes[node]['bestSuccessor']
+
+initPath(DG)
+allBest = sorted([[bestPath(start_node, DG)[0] + DG.nodes[start_node]['node_value'], start_node]
+                 for start_node in unique_input_node], 
+                 key=lambda tup: tup[0])
+
+
+print("Meilleur chemin et score associé : ")
+print([allBest[0][1]] + DG.nodes[allBest[0][1]]['bestPath'], DG.nodes[allBest[0][1]]['bestPath_value'])
