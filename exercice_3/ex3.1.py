@@ -32,7 +32,6 @@ DG.number_of_nodes(), DG.number_of_edges()
 
 
 # In[7]:
-unique_input_id = np.unique(interactions[0][:,0])
 unique_input_node = [i for i in DG.nodes() if "_0" in i]
 
 
